@@ -8,14 +8,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let message = message.trim();
 
     // Get NEAR environment variables
-    let sender_id = env::var("NEAR_SENDER_ID").unwrap_or_else(|_| "unknown".to_string());
-    let block_height = env::var("NEAR_BLOCK_HEIGHT").unwrap_or_else(|_| "unknown".to_string());
+    // let sender_id = env::var("NEAR_SENDER_ID").unwrap_or_else(|_| "unknown".to_string());
+    // let block_height = env::var("NEAR_BLOCK_HEIGHT").unwrap_or_else(|_| "unknown".to_string());
+    let protected_key = env::var("PROTECTED_CIAO_KEY").unwrap_or_else(|_| "unknown".to_string());
 
     // Create echo message with context
-    let echo_message = format!(
-        "{} said \"{}\" at block {}",
-        sender_id, message, block_height
-    );
+    let echo_message = format!("PROTECTED KEY is {}", protected_key);
 
     print!("{}", echo_message);
     io::stdout().flush()?;
