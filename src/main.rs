@@ -3,11 +3,9 @@ use bip32::secp256k1::ecdsa::{
     Signature,
 };
 use bip32::{Prefix, Seed, XPrv};
-use k256::ecdsa::{SigningKey, VerifyingKey};
-use k256::elliptic_curve::sec1::ToEncodedPoint;
 use sha3::{Digest, Keccak256};
 use std::env;
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // // Read plain text input from stdin
@@ -75,18 +73,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub fn hex_to_bip32_path(hex_string: &str) -> Result<String, String> {
+    // Remove '0x' prefix if present
+    let clean_hex = if hex_string.starts_with("0x") || hex_string.starts_with("0X") {
+        &hex_string[2..]
+    } else {
+        hex_string
+    };
 
-    #[test]
-    fn test_output_serialization() {
-        let output = Output {
-            echo: "user.near said \"test\" at block 12345".to_string(),
-        };
-        let json = serde_json::to_string(&output).unwrap();
-        assert!(json.contains("user.near"));
-        assert!(json.contains("test"));
-        assert!(json.contains("12345"));
+    // Validate input length (32 bytes = 64 hex characters)
+    if clean_hex.len() != 64 {
+        return Err(format!(
+            "Expected 64 hex characters (32 bytes), got {}",
+            clean_hex.len()
+        ));
     }
+
+    // Validate hex characters
+    if !clean_hex.chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err("Invalid hex string: contains non-hexadecimal characters".to_string());
+    }
+
+    let mut path = vec!["m".to_string()];
+
+    // Divide into 8 chunks of 4 bytes (8 hex characters) each
+    for i in (0..64).step_by(8) {
+        let chunk = &clean_hex[i..i + 8];
+        // Convert 4-byte chunk to integer (big-endian)
+        let value = u32::from_str_radix(chunk, 16)
+            .map_err(|e| format!("Failed to parse hex chunk '{}': {}", chunk, e))?;
+        path.push(value.to_string());
+    }
+
+    Ok(path.join("/"))
 }
