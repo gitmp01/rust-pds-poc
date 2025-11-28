@@ -1,14 +1,6 @@
-use serde::Serialize;
-
 use alloy::hex;
-use bip32::secp256k1::ecdsa::{
-    signature::{Signer, Verifier},
-    Signature,
-};
-use bip32::{Prefix, Seed, XPrv, XPub};
-use sha3::{Digest, Keccak256};
+use bip32::{Seed, XPrv};
 use std::env;
-use std::io::{self, Read, Write};
 
 // Returns:
 //
@@ -27,10 +19,6 @@ pub fn init() -> Result<String, Box<dyn std::error::Error>> {
         .expect("Vector length must be 64");
 
     let seed = Seed::new(seed_u8_64);
-
-    // Root private key
-    let root_xprv = XPrv::new(&seed)?;
-    // assert_eq!(root_xprv, XPrv::derive_from_path(&seed, &"m".parse()?)?);
 
     // Normal child from which we derive deposit addresses
     let root_derivation_path = "m/44'/60'/0'/0/0";

@@ -1,32 +1,29 @@
-use crate::data;
-
+#![allow(unused_imports)]
 use super::bip32_ext::get_derivation_path_from_hash;
-use alloy::consensus::{EthereumTxEnvelope, SignableTransaction, TxLegacy};
+use alloy::consensus::{SignableTransaction, TxLegacy};
 use alloy::hex;
 use alloy::network::TxSignerSync;
 use alloy::primitives::{Address, Bytes, ChainId, U256};
 use alloy::signers::local::PrivateKeySigner;
 use bip32::{Seed, XPrv};
-use bytes::{Buf, BufMut};
 use k256::ecdsa::VerifyingKey;
 use k256::sha2::{Digest, Sha256};
 use sha3::Keccak256;
 use std::env;
 
-fn get_address(public_key: &VerifyingKey) -> String {
-    let public_key_bytes = public_key.to_encoded_point(false);
-    let public_key_bytes_no_prefix = &public_key_bytes.as_bytes()[1..];
-    let mut hasher = Keccak256::new();
-    hasher.update(public_key_bytes_no_prefix);
-    let hash = hasher.finalize();
-    // last 20 bytes
-    hex::encode(&hash[12..])
-}
+// fn get_address(public_key: &VerifyingKey) -> String {
+//     let public_key_bytes = public_key.to_encoded_point(false);
+//     let public_key_bytes_no_prefix = &public_key_bytes.as_bytes()[1..];
+//     let mut hasher = Keccak256::new();
+//     hasher.update(public_key_bytes_no_prefix);
+//     let hash = hasher.finalize();
+//     // last 20 bytes
+//     hex::encode(&hash[12..])
+// }
 
 pub fn handle_deposit(
     commitment_params: Vec<String>,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    println!("handle_deposit");
     let protected_seed =
         env::var("PROTECTED_SEED").expect("PROTECTED_SEED env variable is undefined");
 
@@ -54,9 +51,8 @@ pub fn handle_deposit(
     let child_xpub = child_xprv.public_key();
 
     let private_key = child_xprv.private_key();
-    let public_key = child_xpub.public_key();
-
-    let address: Address = get_address(public_key).parse()?;
+    // let public_key = child_xpub.public_key();
+    // let address: Address = get_address(public_key).parse()?;
 
     // Extract to and calldata from commitment_params
     if commitment_params.len() != 7 {

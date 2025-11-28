@@ -1,4 +1,3 @@
-#![allow(warnings)]
 use alloy::hex;
 use alloy::primitives::Bytes;
 use std::io::{self, Read, Write};

@@ -18,12 +18,12 @@ pub fn get_derivation_path_from_hash(hash: &[u8]) -> Result<String, String> {
     let mut path = vec![];
 
     // Divide into 8 chunks of 4 bytes each
-    let nonHardenedLimit = 2u32.pow(31) - 1;
+    let non_hardened_limit = 2u32.pow(31) - 1;
     for i in (0..32).step_by(4) {
         let chunk = &hash[i..i + 4];
         // Convert 4-byte chunk to u32 (big-endian)
         let value = u32::from_be_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]);
-        let normalized_value = value % nonHardenedLimit;
+        let normalized_value = value % non_hardened_limit;
         path.push(normalized_value.to_string());
     }
 

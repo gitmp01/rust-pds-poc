@@ -12,6 +12,7 @@ pub struct Output {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Header {
     pub version: Bytes,
     pub network_code: Bytes,

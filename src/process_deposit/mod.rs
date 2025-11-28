@@ -1,8 +1,5 @@
 use super::data;
-use alloy::hex;
 use alloy::primitives::Bytes;
-use minicbor::Decoder;
-use serde::{Deserialize, Serialize};
 
 mod bip32_ext;
 mod evm;
@@ -11,7 +8,6 @@ pub fn process_deposit(
     header: data::Header,
     message: Bytes,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    println!("Processing deposit with message: {:?}", message);
     let commitment_bytes = message.slice(0..);
     let commitment: [&str; 7] = minicbor::decode(&commitment_bytes)?;
     // FIXME: inefficient
