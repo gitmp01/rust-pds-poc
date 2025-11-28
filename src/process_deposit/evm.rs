@@ -1,5 +1,8 @@
+use crate::data;
+
 use super::bip32_ext::get_derivation_path_from_hash;
 use alloy::consensus::{EthereumTxEnvelope, SignableTransaction, TxLegacy};
+use alloy::hex;
 use alloy::network::TxSignerSync;
 use alloy::primitives::{Address, Bytes, ChainId, U256};
 use alloy::signers::local::PrivateKeySigner;
@@ -21,9 +24,9 @@ fn get_address(public_key: &VerifyingKey) -> String {
 }
 
 pub fn handle_deposit(
-    deposit_address: String,
     commitment_params: Vec<String>,
 ) -> Result<String, Box<dyn std::error::Error>> {
+    println!("handle_deposit");
     let protected_seed =
         env::var("PROTECTED_SEED").expect("PROTECTED_SEED env variable is undefined");
 
@@ -54,22 +57,13 @@ pub fn handle_deposit(
     let public_key = child_xpub.public_key();
 
     let address: Address = get_address(public_key).parse()?;
-    let deposit_address: Address = deposit_address.parse()?;
-
-    if address != deposit_address {
-        let err = format!(
-            "Address mismatch: derived address '{}' does not match deposit address '{}'",
-            address, deposit_address
-        );
-        return Err(err.into());
-    }
 
     // Extract to and calldata from commitment_params
     if commitment_params.len() != 7 {
         return Err("commitment_params must contain exactly 7 elements: [chain_id, nonce, gas_price, gas_limit, to, value, calldata]".into());
     }
 
-    let chain_id: Option<ChainId> = Some(commitment_params[0].parse()?);
+    let chain_id: ChainId = commitment_params[0].parse()?;
     let nonce: u64 = commitment_params[1].parse()?;
     let gas_price: u128 = commitment_params[2].parse()?;
     let gas_limit: u64 = commitment_params[3].parse()?;
@@ -79,7 +73,6 @@ pub fn handle_deposit(
     let calldata: Bytes = commitment_params[6].parse()?;
 
     let signer = PrivateKeySigner::from_signing_key(private_key.clone());
-
     let mut tx = TxLegacy {
         nonce: nonce,
         gas_price: gas_price,
@@ -87,7 +80,7 @@ pub fn handle_deposit(
         to: alloy::primitives::TxKind::Call(to_address),
         value: value,
         input: calldata,
-        chain_id: chain_id,
+        chain_id: Some(chain_id),
     };
 
     let signature = signer.sign_transaction_sync(&mut tx)?;

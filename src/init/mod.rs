@@ -1,5 +1,6 @@
 use serde::Serialize;
 
+use alloy::hex;
 use bip32::secp256k1::ecdsa::{
     signature::{Signer, Verifier},
     Signature,

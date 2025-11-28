@@ -1,30 +1,26 @@
+use super::data;
+use alloy::hex;
+use alloy::primitives::Bytes;
+use minicbor::Decoder;
 use serde::{Deserialize, Serialize};
+
 mod bip32_ext;
 mod evm;
 
-#[derive(Deserialize, Serialize)]
-struct InputParams {
-    chain: String,
-    #[serde(rename = "depositAddress")]
-    deposit_address: String,
-    #[serde(rename = "commitmentParams")]
-    commitment_params: Vec<String>,
-}
+pub fn process_deposit(
+    header: data::Header,
+    message: Bytes,
+) -> Result<String, Box<dyn std::error::Error>> {
+    println!("Processing deposit with message: {:?}", message);
+    let commitment_bytes = message.slice(0..);
+    let commitment: [&str; 7] = minicbor::decode(&commitment_bytes)?;
+    // FIXME: inefficient
+    let commitment_vec: Vec<String> = commitment.iter().map(|s| s.to_string()).collect();
 
-#[derive(Deserialize, Serialize)]
-struct Input {
-    command: String,
-    params: InputParams,
-}
-
-pub fn process_deposit(message: &str) -> Result<String, Box<dyn std::error::Error>> {
-    println!("Processing deposit with message: {}", message);
-    let input: Input = serde_json::from_str(&message)?;
-
-    match input.params.chain.as_str() {
-        "evm" => evm::handle_deposit(input.params.deposit_address, input.params.commitment_params),
+    match header.protocol {
+        1 => evm::handle_deposit(commitment_vec),
         _ => {
-            return Err(format!("Unsupported chain: {}", input.params.chain).into());
+            return Err(format!("Unsupported protocol: {}", header.protocol).into());
         }
     }
 }
